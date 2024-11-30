@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 # List of required packages
-required_packages = ["streamlit", "xml.etree.ElementTree", "datetime", "python-dotenv"]
+required_packages = ["streamlit", "xml.etree.ElementTree", "datetime"]
 
 # Install missing packages
 for package in required_packages:
