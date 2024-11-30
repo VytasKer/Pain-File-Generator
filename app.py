@@ -12,7 +12,5 @@ for package in required_packages:
     except ImportError:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-pg = st.navigation([
-    st.Page("main.py"),
-    st.Page("log.py")])
-pg.run()
+#pg = st.navigation([st.Page("main.py"), st.Page("log.py")])
+#pg.run()
