@@ -22,9 +22,9 @@ with st.expander("Basic Inputs", expanded=False):
     # Account inputs
     st.write("If consolidated payment is selected, only one debtor account is allowed (first account from the list will be taken).")
     debtor_accounts = st.text_area("Debtor Accounts (comma-separated)", 
-        "LT444010000100561111,LT444010000100562222,LT444010000100563333")
+        "LT960012506478811944,LT910206817008600459")
     creditor_accounts = st.text_area("Creditor Accounts (comma-separated)", 
-        "LT587400000013547777,LT587400000013548888,LT587400000013549999")
+        "LT159627132004001400,LT174002822700210098")
 
     # Amount and currency inputs
     amount_type = st.radio(

@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from datetime import date
+import random as rd
 
 def generate_pain_xml(msg_id=None, 
                       creation_time=str(date.today()),
@@ -186,7 +187,7 @@ def generate_pain_xml(msg_id=None,
             # Creditor Account
             cdtr_acct = ET.SubElement(cdt_trf_tx_inf, "CdtrAcct")
             cdtr_id = ET.SubElement(cdtr_acct, "Id")
-            ET.SubElement(cdtr_id, "IBAN").text = creditor_list[i % len(creditor_list)]
+            ET.SubElement(cdtr_id, "IBAN").text = rd.choice(creditor_list)
 
             # Remittance Information
             if is_unstructured:
