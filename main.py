@@ -4,7 +4,26 @@ from datetime import date
 
 st.title("Pain XML Generator")
 st.write("This is a Streamlit app that generates pain XML files. It's purpose is to allow large pain files generation with a substantial amount of payment instances.")
-st.write("Supported pain version: _pain.001.001.09_")
+st.write("Supported pain versions: _pain.001.001.03_, _pain.001.001.09_")
+st.divider()
+
+#---------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------
+
+# Version Selection
+select_version = st.radio(
+    "Select Pain XML Version",
+    options=["pain.001.001.03", "pain.001.001.09"],
+    index=1
+)
+
+is_version_old = False
+
+if select_version == "pain.001.001.03":
+    is_version_old = True
+else:
+    is_version_old = False
+
 st.divider()
 
 #---------------------------------------------------------------------------------------------------------
@@ -36,7 +55,7 @@ with st.expander("Basic Inputs", expanded=False):
     if amount_type == "Fixed Amount":
         fixed_amount = st.number_input("Fixed Amount (e.g., 1.00)", min_value=0.01, format="%.2f")
     else:
-        min_amount = st.number_input("Minimum Amount", min_value=0.0, step=1.0, format="%.2f")
+        min_amount = st.number_input("Minimum Amount", min_value=0.01, step=1.0, format="%.2f")
         max_amount = st.number_input("Maximum Amount", min_value=min_amount+0.01, step=1.0, format="%.2f")
 
     currency = st.text_input("Currency", value="EUR", max_chars=3)
@@ -72,8 +91,13 @@ with st.expander("Advanced Inputs", expanded=False):
 
     # Initiating Party
     initiating_party_name = st.text_input("Initiating Party (InitgPty/Nm)", "initiatingParty")
-    initiating_party_org_bic = st.text_input("Initiating Party Organization BIC (InitgPty/OrgId/AnyBIC)", "BICcode")
-    initiating_party_org_lei = st.text_input("Initiating Party Organization LEI (InitgPty/OrgId/LEI)", "LEIcode")
+
+    initiating_party_org_bic = None
+    initiating_party_org_lei = None
+
+    if not is_version_old:
+        initiating_party_org_bic = st.text_input("Initiating Party Organization BIC (InitgPty/OrgId/AnyBIC)", "BICcode")
+        initiating_party_org_lei = st.text_input("Initiating Party Organization LEI (InitgPty/OrgId/LEI)", "LEIcode")
 
     # Payment Information Id
     st.write("Base part of payment information identification. Package payments will be numbered like so: base + _1, i.e. paymentInfId_1, paymentInfId_2, etc.")
@@ -91,32 +115,55 @@ with st.expander("Advanced Inputs", expanded=False):
     # Create two columns
     col1, col2 = st.columns(2)
 
-    with col1:
+    debtor_department = None
+    debtor_sub_department = None
+    debtor_street_name = None
+    debtor_building_number = None
+    debtor_floor = None
+    debtor_post_box = None
+    debtor_postal_code = None
+    debtor_town_name = None
+    debtor_country_subdivision = None
+    debtor_org_bic = None
+    debtor_org_lei = None
+    debtor_agent_bic = None
+
+    debtor_address_line = None
+
+    if is_version_old:
         debtor_name = st.text_input("Debtor Name (Dbtr/Nm)", "debtorName")
-        debtor_department = st.text_input("Debtor Department (Dbtr/PstlAdr/Dept)", "debtorDepartment")
-        debtor_sub_department = st.text_input("Debtor Sub-Department (Dbtr/PstlAdr/SubDept)", "debtorSubDepartment")
-        debtor_street_name = st.text_input("Debtor Street Name (Dbtr/PstlAdr/StrtNm)", "debtorStreetName")
-        debtor_building_number = st.text_input("Debtor Building Number (Dbtr/PstlAdr/BldgNb)", "debtorBuildingNumber")
-        debtor_floor = st.text_input("Debtor Floor (Dbtr/PstlAdr/Flr)", "debtorFloor")
-        debtor_post_box = st.text_input("Debtor Post Box (Dbtr/PstlAdr/PstBx)", "debtorPostBox")
-
-    with col2:
-        debtor_postal_code = st.text_input("Debtor Postal Code (Dbtr/PstlAdr/PstCd)", "debtorPostalCode")
-        debtor_town_name = st.text_input("Debtor Town Name (Dbtr/PstlAdr/TwnNm)", "debtorTownName")
-        debtor_country_subdivision = st.text_input("Debtor Country Subdivision (Dbtr/PstlAdr/CtrySubDvsn)", "debtorCountrySubdivision")
         debtor_country = st.text_input("Debtor Country (Dbtr/PstlAdr/Ctry)", "debtorCountry")
+        debtor_address_line = st.text_input("Debtor Address Line (Dbtr/PstlAdr/AdrLine)", "debtorAddressLine")
+        debtor_agent_bic = st.text_input("Debtor Agent BIC (DbtrAgt/FinInstnId/BIC)", "BICcode")
+    else:
+        with col1:
+            debtor_name = st.text_input("Debtor Name (Dbtr/Nm)", "debtorName")
+            debtor_department = st.text_input("Debtor Department (Dbtr/PstlAdr/Dept)", "debtorDepartment")
+            debtor_sub_department = st.text_input("Debtor Sub-Department (Dbtr/PstlAdr/SubDept)", "debtorSubDepartment")
+            debtor_street_name = st.text_input("Debtor Street Name (Dbtr/PstlAdr/StrtNm)", "debtorStreetName")
+            debtor_building_number = st.text_input("Debtor Building Number (Dbtr/PstlAdr/BldgNb)", "debtorBuildingNumber")
+            debtor_floor = st.text_input("Debtor Floor (Dbtr/PstlAdr/Flr)", "debtorFloor")
+            debtor_post_box = st.text_input("Debtor Post Box (Dbtr/PstlAdr/PstBx)", "debtorPostBox")
 
-        debtor_org_bic = st.text_input("Debtor Organization BIC (Dbtr/OrgId/AnyBIC)", "BICcode")
-        debtor_org_lei = st.text_input("Debtor Organization LEI (Dbtr/OrgId/LEI)", "LEIcode")
+        with col2:
+            debtor_postal_code = st.text_input("Debtor Postal Code (Dbtr/PstlAdr/PstCd)", "debtorPostalCode")
+            debtor_town_name = st.text_input("Debtor Town Name (Dbtr/PstlAdr/TwnNm)", "debtorTownName")
+            debtor_country_subdivision = st.text_input("Debtor Country Subdivision (Dbtr/PstlAdr/CtrySubDvsn)", "debtorCountrySubdivision")
+            debtor_country = st.text_input("Debtor Country (Dbtr/PstlAdr/Ctry)", "debtorCountry")
 
-        # Debtor Agent
-        debtor_agent_bic = st.text_input("Debtor Agent BIC (DbtrAgt/FinInstnId/BICFI)", "BICcode")
+            debtor_org_bic = st.text_input("Debtor Organization BIC (Dbtr/OrgId/AnyBIC)", "BICcode")
+            debtor_org_lei = st.text_input("Debtor Organization LEI (Dbtr/OrgId/LEI)", "LEIcode")
+
+            # Debtor Agent
+            debtor_agent_bic = st.text_input("Debtor Agent BIC (DbtrAgt/FinInstnId/BICFI)", "BICcode")
     
     st.divider()
 
     # Creditor Information Identification
     st.write("Base part of creditor information identification. Package payments will be numbered like so: base + _1, i.e. creditorInstructionId_1, creditorInstructionId_2, etc.")
     cdtr_instr_id = st.text_input("Creditor Instruction ID (CdtTrfTxInf/PmtId/InstrId)", "creditorInstructionId")
+
+    st.write("Base part of end-to-end identification. Package payments will be numbered like so: base + _1, i.e. endToEndId_1, endToEndId_2, etc.")
     end_to_end_id = st.text_input("End-to-End ID (CdtTrfTxInf/PmtId/EndToEndId)", "endToEndId")
 
     st.divider()
@@ -127,19 +174,35 @@ with st.expander("Advanced Inputs", expanded=False):
     # Create two columns
     col1, col2 = st.columns(2)
 
-    with col1:
+    creditor_street_name = None
+    creditor_building_number = None
+    creditor_floor = None
+    creditor_postal_code = None
+    creditor_town_name = None
+    creditor_country = None
+    creditor_org_bic = None
+    creditor_org_lei = None
+
+    creditor_address_line = None
+
+    if is_version_old:
         creditor_name = st.text_input("Creditor Name (Cdtr/Nm)", "creditorName")
-        creditor_street_name = st.text_input("Creditor Street Name (Cdtr/PstlAdr/StrtNm)", "creditorStreetName")
-        creditor_building_number = st.text_input("Creditor Building Number (Cdtr/PstlAdr/BldgNb)", "creditorBuildingNumber")
-        creditor_floor = st.text_input("Creditor Floor (Cdtr/PstlAdr/Flr)", "creditorFloor")
-        creditor_postal_code = st.text_input("Creditor Postal Code (Cdtr/PstlAdr/PstCd)", "creditorPostalCode")
-
-    with col2:
-        creditor_town_name = st.text_input("Creditor Town Name (Cdtr/PstlAdr/TwnNm)", "creditorTownName")
         creditor_country = st.text_input("Creditor Country (Cdtr/PstlAdr/Ctry)", "creditorCountry")
+        creditor_address_line = st.text_input("Creditor Address Line (Cdtr/PstlAdr/AdrLine)", "creditorAddressLine")
+    else:
+        with col1:
+            creditor_name = st.text_input("Creditor Name (Cdtr/Nm)", "creditorName")
+            creditor_street_name = st.text_input("Creditor Street Name (Cdtr/PstlAdr/StrtNm)", "creditorStreetName")
+            creditor_building_number = st.text_input("Creditor Building Number (Cdtr/PstlAdr/BldgNb)", "creditorBuildingNumber")
+            creditor_floor = st.text_input("Creditor Floor (Cdtr/PstlAdr/Flr)", "creditorFloor")
+            creditor_postal_code = st.text_input("Creditor Postal Code (Cdtr/PstlAdr/PstCd)", "creditorPostalCode")
 
-        creditor_org_bic = st.text_input("Creditor Organization BIC (Cdtr/OrgId/AnyBIC)", "BICcode")
-        creditor_org_lei = st.text_input("Creditor Organization LEI (Cdtr/OrgId/LEI)", "LEIcode")
+        with col2:
+            creditor_town_name = st.text_input("Creditor Town Name (Cdtr/PstlAdr/TwnNm)", "creditorTownName")
+            creditor_country = st.text_input("Creditor Country (Cdtr/PstlAdr/Ctry)", "creditorCountry")
+
+            creditor_org_bic = st.text_input("Creditor Organization BIC (Cdtr/OrgId/AnyBIC)", "BICcode")
+            creditor_org_lei = st.text_input("Creditor Organization LEI (Cdtr/OrgId/LEI)", "LEIcode")
 
     st.divider()
     
@@ -162,6 +225,23 @@ with st.expander("Advanced Inputs", expanded=False):
         unstructured_remittance = False
         structured_remittance_type = st.text_input("Structured Remittance Type", "SCOR")
         structured_remittance_ref = st.text_input("Structured Remittance Reference", "StructuredReference")
+    
+    st.divider()
+
+    # Optional ClientXML tags
+    st.write("ClientXML and OrderXML tags")
+    add_clientxml = st.radio(
+        "Add ClientXML and OrderXML tags?",
+        options=["No", "Yes"],
+        index=0
+    )
+
+    is_clientxml = False
+
+    if add_clientxml == "Yes":
+        is_clientxml = True
+    else:    
+        is_clientxml = False
 
 #---------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------
@@ -220,7 +300,11 @@ if st.button("Generate"):
         structured_remittance_ref=structured_remittance_ref,
         is_consolidated=is_consolidated,
         category_purpose=category_purpose,
-        number_of_creditor_blocks=number_of_creditor_blocks
+        number_of_creditor_blocks=number_of_creditor_blocks,
+        is_version_old=is_version_old,
+        debtor_address_line=debtor_address_line,
+        creditor_address_line=creditor_address_line,
+        is_clientxml=is_clientxml
     )
     st.success("XML file generated successfully!")
 

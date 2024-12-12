@@ -50,10 +50,41 @@ def generate_pain_xml(msg_id=None,
                       structured_remittance_ref="StructuredReference",
                       is_consolidated=False,
                       category_purpose="SALA",
-                      number_of_creditor_blocks="1"):
-    # Create root element
-    root = ET.Element("Document", xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09")
-    ccti = ET.SubElement(root, "CstmrCdtTrfInitn")
+                      number_of_creditor_blocks="1",
+                      is_version_old=False,
+                      debtor_address_line="debtorAddressLine",
+                      creditor_address_line="creditorAddressLine",
+                      is_clientxml=False):
+    
+    # Check if add clientxml and orderxml tags
+    if is_clientxml:
+        xmlns = "xmlns:v1"
+        xmlns_dict = {xmlns: "http://forbis.lt/schema/gateway/client-xml/v1"}
+        root = ET.Element("v1:ClientXML", xmlns_dict)
+        file_header = ET.SubElement(root, "v1:Header")
+
+        # Add service code
+        if is_consolidated:
+            ET.SubElement(file_header, "v1:ServiceCode").text = "ConsolidatedPayment"
+        else:
+            ET.SubElement(file_header, "v1:ServiceCode").text = "Payment"
+
+        # Add service version
+        if is_version_old:
+            ET.SubElement(file_header, "v1:ServiceVersion").text = "1"
+        else:
+            ET.SubElement(file_header, "v1:ServiceVersion").text = "pain.001.001.09"
+
+        file_body = ET.SubElement(root, "v1:Body")
+        order_xml = ET.SubElement(file_body, "v1:OrderXML")
+        ccti = ET.SubElement(order_xml, "CstmrCdtTrfInitn")
+    else:
+        # Create root element
+        if is_version_old:
+            root = ET.Element("Document", xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03")
+        else:
+            root = ET.Element("Document", xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09")
+        ccti = ET.SubElement(root, "CstmrCdtTrfInitn")
 
     # Header block
     grp_hdr = ET.SubElement(ccti, "GrpHdr")
@@ -67,11 +98,16 @@ def generate_pain_xml(msg_id=None,
         ET.SubElement(grp_hdr, "NbOfTxs").text = str(num_transactions)
 
     ET.SubElement(grp_hdr, "CtrlSum").text = "0.00"  # Placeholder
-    initg_pty = ET.SubElement(grp_hdr, "InitgPty")
-    ET.SubElement(initg_pty, "Nm").text = initiating_party_name
-    org_id = ET.SubElement(initg_pty, "OrgId")
-    ET.SubElement(org_id, "AnyBIC").text = initiating_party_org_bic
-    ET.SubElement(org_id, "LEI").text = initiating_party_org_lei
+
+    if is_version_old:
+        initg_pty = ET.SubElement(grp_hdr, "InitgPty")
+        ET.SubElement(initg_pty, "Nm").text = initiating_party_name
+    else:
+        initg_pty = ET.SubElement(grp_hdr, "InitgPty")
+        ET.SubElement(initg_pty, "Nm").text = initiating_party_name
+        org_id = ET.SubElement(initg_pty, "OrgId")
+        ET.SubElement(org_id, "AnyBIC").text = initiating_party_org_bic
+        ET.SubElement(org_id, "LEI").text = initiating_party_org_lei
 
     # Payment information block
     debtor_list = debtor_accounts.split(",")
@@ -84,6 +120,9 @@ def generate_pain_xml(msg_id=None,
         num_transactions = 1
     else:
         number_of_creditor_blocks = 1
+
+    # Initialize Transaction Iterator
+    transaction_iterator = 0
 
     for i in range(num_transactions):
 
@@ -109,28 +148,38 @@ def generate_pain_xml(msg_id=None,
             ET.SubElement(cgty_purpose, "Cd").text = category_purpose
 
         # Request Execution Date
-        reqd_exctn_dt = ET.SubElement(pmt_inf, "ReqdExctnDt")
-        ET.SubElement(reqd_exctn_dt, "Dt").text = execution_date
+        if is_version_old:
+            reqd_exctn_dt = ET.SubElement(pmt_inf, "ReqdExctnDt")
+        else:
+            reqd_exctn_dt = ET.SubElement(pmt_inf, "ReqdExctnDt")
+            ET.SubElement(reqd_exctn_dt, "Dt").text = execution_date
 
         # Debtor Info
-        dbtr = ET.SubElement(pmt_inf, "Dbtr")
-        ET.SubElement(dbtr, "Nm").text = debtor_name
-        pstl_addr = ET.SubElement(dbtr, "PstlAdr")
-        ET.SubElement(pstl_addr, "Dept").text = debtor_department
-        ET.SubElement(pstl_addr, "SubDept").text = debtor_sub_department
-        ET.SubElement(pstl_addr, "StrtNm").text = debtor_street_name
-        ET.SubElement(pstl_addr, "BldgNb").text = debtor_building_number
-        ET.SubElement(pstl_addr, "Flr").text = debtor_floor
-        ET.SubElement(pstl_addr, "PstBx").text = debtor_post_box
-        ET.SubElement(pstl_addr, "Room").text = debtor_room
-        ET.SubElement(pstl_addr, "PstCd").text = debtor_postal_code
-        ET.SubElement(pstl_addr, "TwnNm").text = debtor_town_name
-        ET.SubElement(pstl_addr, "DstrctNm").text = debtor_district_name
-        ET.SubElement(pstl_addr, "CtrySubDvsn").text = debtor_country_subdivision
-        ET.SubElement(pstl_addr, "Ctry").text = debtor_country
-        org_id = ET.SubElement(dbtr, "OrgId")
-        ET.SubElement(org_id, "AnyBIC").text = debtor_org_bic
-        ET.SubElement(org_id, "LEI").text = debtor_org_lei
+        if is_version_old:
+            dbtr = ET.SubElement(pmt_inf, "Dbtr")
+            ET.SubElement(dbtr, "Nm").text = debtor_name
+            pstl_addr = ET.SubElement(dbtr, "PstlAdr")
+            ET.SubElement(pstl_addr, "Ctry").text = debtor_country
+            ET.SubElement(pstl_addr, "AdrLine").text = debtor_address_line
+        else:
+            dbtr = ET.SubElement(pmt_inf, "Dbtr")
+            ET.SubElement(dbtr, "Nm").text = debtor_name
+            pstl_addr = ET.SubElement(dbtr, "PstlAdr")
+            ET.SubElement(pstl_addr, "Dept").text = debtor_department
+            ET.SubElement(pstl_addr, "SubDept").text = debtor_sub_department
+            ET.SubElement(pstl_addr, "StrtNm").text = debtor_street_name
+            ET.SubElement(pstl_addr, "BldgNb").text = debtor_building_number
+            ET.SubElement(pstl_addr, "Flr").text = debtor_floor
+            ET.SubElement(pstl_addr, "PstBx").text = debtor_post_box
+            ET.SubElement(pstl_addr, "Room").text = debtor_room
+            ET.SubElement(pstl_addr, "PstCd").text = debtor_postal_code
+            ET.SubElement(pstl_addr, "TwnNm").text = debtor_town_name
+            ET.SubElement(pstl_addr, "DstrctNm").text = debtor_district_name
+            ET.SubElement(pstl_addr, "CtrySubDvsn").text = debtor_country_subdivision
+            ET.SubElement(pstl_addr, "Ctry").text = debtor_country
+            org_id = ET.SubElement(dbtr, "OrgId")
+            ET.SubElement(org_id, "AnyBIC").text = debtor_org_bic
+            ET.SubElement(org_id, "LEI").text = debtor_org_lei
 
         # Debtor Account
         dbtr_acct = ET.SubElement(pmt_inf, "DbtrAcct")
@@ -146,7 +195,10 @@ def generate_pain_xml(msg_id=None,
         # Debtor Agent
         dbtr_agt = ET.SubElement(pmt_inf, "DbtrAgt")
         fin_instn_id = ET.SubElement(dbtr_agt, "FinInstnId")
-        ET.SubElement(fin_instn_id, "BICFI").text = debtor_agent_bic
+        if is_version_old:
+            ET.SubElement(fin_instn_id, "BIC").text = debtor_agent_bic
+        else:
+            ET.SubElement(fin_instn_id, "BICFI").text = debtor_agent_bic
 
         for j in range(number_of_creditor_blocks):
             # Creditor
@@ -154,8 +206,8 @@ def generate_pain_xml(msg_id=None,
 
             # Payment Identification
             pmt_id = ET.SubElement(cdt_trf_tx_inf, "PmtId")
-            ET.SubElement(pmt_id, "InstrId").text = cdtr_instr_id + "_" + str(j+1)
-            ET.SubElement(pmt_id, "EndToEndId").text = end_to_end_id
+            ET.SubElement(pmt_id, "InstrId").text = cdtr_instr_id + "_" + str(transaction_iterator+1)
+            ET.SubElement(pmt_id, "EndToEndId").text = end_to_end_id + "_" + str(transaction_iterator+1)
 
             # Add Amount to Creditor Info
             amt = ET.SubElement(cdt_trf_tx_inf, "Amt")
@@ -171,18 +223,25 @@ def generate_pain_xml(msg_id=None,
             ET.SubElement(amt, "InstdAmt", Ccy=currency).text = f"{amount:.2f}"
 
             # Creditor Info
-            cdtr = ET.SubElement(cdt_trf_tx_inf, "Cdtr")
-            ET.SubElement(cdtr, "Nm").text = creditor_name
-            pstl_addr = ET.SubElement(cdtr, "PstlAdr")
-            ET.SubElement(pstl_addr, "StrtNm").text = creditor_street_name
-            ET.SubElement(pstl_addr, "BldgNb").text = creditor_building_number
-            ET.SubElement(pstl_addr, "Flr").text = creditor_floor
-            ET.SubElement(pstl_addr, "PstCd").text = creditor_postal_code
-            ET.SubElement(pstl_addr, "TwnNm").text = creditor_town_name
-            ET.SubElement(pstl_addr, "Ctry").text = creditor_country
-            org_id = ET.SubElement(cdtr, "OrgId")
-            ET.SubElement(org_id, "AnyBIC").text = creditor_org_bic
-            ET.SubElement(org_id, "LEI").text = creditor_org_lei
+            if is_version_old:
+                cdtr = ET.SubElement(cdt_trf_tx_inf, "Cdtr")
+                ET.SubElement(cdtr, "Nm").text = creditor_name
+                pstl_addr = ET.SubElement(cdtr, "PstlAdr")
+                ET.SubElement(pstl_addr, "Ctry").text = creditor_country
+                ET.SubElement(pstl_addr, "AdrLine").text = creditor_address_line
+            else:
+                cdtr = ET.SubElement(cdt_trf_tx_inf, "Cdtr")
+                ET.SubElement(cdtr, "Nm").text = creditor_name
+                pstl_addr = ET.SubElement(cdtr, "PstlAdr")
+                ET.SubElement(pstl_addr, "StrtNm").text = creditor_street_name
+                ET.SubElement(pstl_addr, "BldgNb").text = creditor_building_number
+                ET.SubElement(pstl_addr, "Flr").text = creditor_floor
+                ET.SubElement(pstl_addr, "PstCd").text = creditor_postal_code
+                ET.SubElement(pstl_addr, "TwnNm").text = creditor_town_name
+                ET.SubElement(pstl_addr, "Ctry").text = creditor_country
+                org_id = ET.SubElement(cdtr, "OrgId")
+                ET.SubElement(org_id, "AnyBIC").text = creditor_org_bic
+                ET.SubElement(org_id, "LEI").text = creditor_org_lei
 
             # Creditor Account
             cdtr_acct = ET.SubElement(cdt_trf_tx_inf, "CdtrAcct")
@@ -201,6 +260,9 @@ def generate_pain_xml(msg_id=None,
                 cd_or_prtry = ET.SubElement(type, "CdOrPrtry")
                 ET.SubElement(cd_or_prtry, "Cd").text = structured_remittance_type
                 ET.SubElement(cdtr_ref_inf, "Ref").text = structured_remittance_ref
+            
+            # Increment transaction iterator
+            transaction_iterator += 1
 
         # Add amount to payment block
         pmt_inf.find("CtrlSum").text = f"{ctrl_sum:.2f}"
