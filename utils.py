@@ -148,14 +148,14 @@ def generate_pain_xml(msg_id=None,
             ET.SubElement(cgty_purpose, "Cd").text = category_purpose
 
         # Request Execution Date
+        reqd_exctn_dt = ET.SubElement(pmt_inf, "ReqdExctnDt")
         if is_version_old:
-            reqd_exctn_dt = ET.SubElement(pmt_inf, "ReqdExctnDt")
+            # This will directly assign the `execution_date` to the `ReqdExctnDt` as it needs to be in older version like `pain.001.001.03`
+            reqd_exctn_dt.text = execution_date
         else:
-            reqd_exctn_dt = ET.SubElement(pmt_inf, "ReqdExctnDt")
-
-        #The SubElement (Dt) was only being created for new version due to incorrect indent.
-        # Now, it works for both, either is_version_old or not.
-        ET.SubElement(reqd_exctn_dt, "Dt").text = execution_date
+            # This will create another tag `Dt` and then assign the `execution_date` to the `Dt`, child of `ReqdExctnDt`
+            # as it needs to be in the newer version like `pain.001.001.09`
+            ET.SubElement(reqd_exctn_dt, "Dt").text = execution_date
 
         # Debtor Info
         if is_version_old:
