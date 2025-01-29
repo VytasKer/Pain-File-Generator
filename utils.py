@@ -152,7 +152,10 @@ def generate_pain_xml(msg_id=None,
             reqd_exctn_dt = ET.SubElement(pmt_inf, "ReqdExctnDt")
         else:
             reqd_exctn_dt = ET.SubElement(pmt_inf, "ReqdExctnDt")
-            ET.SubElement(reqd_exctn_dt, "Dt").text = execution_date
+
+        #The SubElement (Dt) was only being created for new version due to incorrect indent.
+        # Now, it works for both, either is_version_old or not.
+        ET.SubElement(reqd_exctn_dt, "Dt").text = execution_date
 
         # Debtor Info
         if is_version_old:
