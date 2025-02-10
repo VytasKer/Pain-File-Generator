@@ -276,9 +276,20 @@ def generate_pain_xml(msg_id=None,
     # Update CtrlSum
     grp_hdr.find("CtrlSum").text = f"{total_sum:.2f}"
 
+    # If generating a client XML
+    if is_clientxml:
+        order_xml = root.find(".//v1:OrderXML", {"v1": "http://forbis.lt/schema/gateway/client-xml/v1"})
+        if order_xml is not None:
+            pain_version = "pain.001.001.03" if is_version_old else "pain.001.001.09"
+            document = ET.SubElement(order_xml, "Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
+            document.append(ccti)  # Move generated content inside <Document>
+    else:
+        # Directly use <Document> if it's not client XML
+        document = root
+    
     # Write to file
     tree = ET.ElementTree(root)
-    tree.write("generated_pain.xml", encoding="utf-8", xml_declaration=True)
+    tree.write("generated_pain.xml", encoding="UTF-8", xml_declaration=True)
 
 def download_file(file_path):
     with open(file_path, "rb") as file:
