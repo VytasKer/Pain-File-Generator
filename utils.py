@@ -62,7 +62,7 @@ def generate_pain_xml(msg_id=None,
         xmlns_dict = {xmlns: "http://forbis.lt/schema/gateway/client-xml/v1"}
         root = ET.Element("v1:ClientXML", xmlns_dict)
         file_header = ET.SubElement(root, "v1:Header")
-
+       
         # Add service code
         if is_consolidated:
             ET.SubElement(file_header, "v1:ServiceCode").text = "ConsolidatedPayment"
@@ -85,6 +85,16 @@ def generate_pain_xml(msg_id=None,
         else:
             root = ET.Element("Document", xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09")
         ccti = ET.SubElement(root, "CstmrCdtTrfInitn")
+
+    order_xml = root.find(".//v1:OrderXML", {"v1": "http://forbis.lt/schema/gateway/client-xml/v1"})
+        
+    if order_xml is not None:
+      pain_version = "pain.001.001.03" if is_version_old else "pain.001.001.09"
+      document = ET.SubElement(order_xml, "Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
+      document.append(ccti)  # Move generated content inside <Document>
+    else:
+      # Directly use <Document> if it's not client XML
+      document = root
 
     # Header block
     grp_hdr = ET.SubElement(ccti, "GrpHdr")
@@ -276,17 +286,6 @@ def generate_pain_xml(msg_id=None,
     # Update CtrlSum
     grp_hdr.find("CtrlSum").text = f"{total_sum:.2f}"
 
-    # If generating a client XML
-    if is_clientxml:
-        order_xml = root.find(".//v1:OrderXML", {"v1": "http://forbis.lt/schema/gateway/client-xml/v1"})
-        if order_xml is not None:
-            pain_version = "pain.001.001.03" if is_version_old else "pain.001.001.09"
-            document = ET.SubElement(order_xml, "Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
-            document.append(ccti)  # Move generated content inside <Document>
-    else:
-        # Directly use <Document> if it's not client XML
-        document = root
-    
     # Write to file
     tree = ET.ElementTree(root)
     tree.write("generated_pain.xml", encoding="UTF-8", xml_declaration=True)
