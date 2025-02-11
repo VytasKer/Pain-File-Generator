@@ -278,7 +278,7 @@ def generate_pain_xml(msg_id=None,
 
     # Write to file
     tree = ET.ElementTree(root)
-    tree.write("generated_pain.xml", encoding="utf-8", xml_declaration=True)
+    tree.write("generated_pain.xml", encoding="UTF-8", xml_declaration=True)
 
 def download_file(file_path):
     with open(file_path, "rb") as file:
