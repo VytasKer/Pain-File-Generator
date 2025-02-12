@@ -56,6 +56,7 @@ def generate_pain_xml(msg_id=None,
                       creditor_address_line="creditorAddressLine",
                       is_clientxml=False):
     
+    pain_version = "pain.001.001.03" if is_version_old else "pain.001.001.09"
     # Check if add clientxml and orderxml tags
     if is_clientxml:
         xmlns = "xmlns:v1"
@@ -77,17 +78,15 @@ def generate_pain_xml(msg_id=None,
 
         file_body = ET.SubElement(root, "v1:Body")
         order_xml = ET.SubElement(file_body, "v1:OrderXML")
-        pain_version = "pain.001.001.03" if is_version_old else "pain.001.001.09"
         document = ET.SubElement(order_xml, "Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
         ccti = ET.SubElement(order_xml, "CstmrCdtTrfInitn")
-        document.append(ccti)  # Move generated content inside <Document>
       
     else:
         # Create root element
         if is_version_old:
-            root = ET.Element("Document", xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03")
+            root = ET.Element("Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
         else:
-            root = ET.Element("Document", xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09")
+            root = ET.Element("Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
         ccti = ET.SubElement(root, "CstmrCdtTrfInitn")
 
     # Header block
