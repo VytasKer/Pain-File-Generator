@@ -79,15 +79,12 @@ def generate_pain_xml(msg_id=None,
         file_body = ET.SubElement(root, "v1:Body")
         order_xml = ET.SubElement(file_body, "v1:OrderXML")
         document = ET.SubElement(order_xml, "Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
-        ccti = ET.SubElement(order_xml, "CstmrCdtTrfInitn")
+        ccti = ET.SubElement(document, "CstmrCdtTrfInitn")
       
     else:
-        # Create root element
-        if is_version_old:
-            root = ET.Element("Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
-        else:
-            root = ET.Element("Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
-        ccti = ET.SubElement(root, "CstmrCdtTrfInitn")
+        # Create root/document element
+        document = ET.Element("Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
+        ccti = ET.SubElement(document, "CstmrCdtTrfInitn")
 
     # Header block
     grp_hdr = ET.SubElement(ccti, "GrpHdr")
