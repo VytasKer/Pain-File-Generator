@@ -77,7 +77,11 @@ def generate_pain_xml(msg_id=None,
 
         file_body = ET.SubElement(root, "v1:Body")
         order_xml = ET.SubElement(file_body, "v1:OrderXML")
+        pain_version = "pain.001.001.03" if is_version_old else "pain.001.001.09"
+        document = ET.SubElement(order_xml, "Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
         ccti = ET.SubElement(order_xml, "CstmrCdtTrfInitn")
+        document.append(ccti)  # Move generated content inside <Document>
+      
     else:
         # Create root element
         if is_version_old:
@@ -85,16 +89,6 @@ def generate_pain_xml(msg_id=None,
         else:
             root = ET.Element("Document", xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09")
         ccti = ET.SubElement(root, "CstmrCdtTrfInitn")
-
-    order_xml = root.find(".//v1:OrderXML", {"v1": "http://forbis.lt/schema/gateway/client-xml/v1"})
-        
-    if order_xml is not None:
-      pain_version = "pain.001.001.03" if is_version_old else "pain.001.001.09"
-      document = ET.SubElement(order_xml, "Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
-      document.append(ccti)  # Move generated content inside <Document>
-    else:
-      # Directly use <Document> if it's not client XML
-      document = root
 
     # Header block
     grp_hdr = ET.SubElement(ccti, "GrpHdr")
