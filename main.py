@@ -17,14 +17,7 @@ select_version = st.radio(
     index=1
 )
 
-is_version_old = False
-
-if select_version == "pain.001.001.03":
-    is_version_old = True
-else:
-    is_version_old = False
-
-st.divider()
+is_version_old = select_version == "pain.001.001.03"
 
 #---------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------
@@ -75,12 +68,7 @@ with st.expander("Advanced Inputs", expanded=False):
         index=0
     )
 
-    is_consolidated = False
-
-    if select_consolidated == "Yes":
-        is_consolidated = True
-    else:
-        is_consolidated = False
+    is_consolidated = select_consolidated == "Yes"
 
     category_purpose = None
     number_of_creditor_blocks = 1
@@ -214,15 +202,14 @@ with st.expander("Advanced Inputs", expanded=False):
         index=0
     )
 
+    unstructured_remittance = remittance_info_type == "Unstructured"
     unstructured_remittance_text = None
-    structured_remittance_type = None
+    structured_remittance_type = None 
     structured_remittance_ref = None
 
-    if remittance_info_type == "Unstructured":
-        unstructured_remittance = True
+    if unstructured_remittance:
         unstructured_remittance_text = st.text_input("Unstructured Remittance Information", "unstructuredRemittanceInformation")
     else:
-        unstructured_remittance = False
         structured_remittance_type = st.text_input("Structured Remittance Type", "SCOR")
         structured_remittance_ref = st.text_input("Structured Remittance Reference", "StructuredReference")
     
@@ -236,12 +223,7 @@ with st.expander("Advanced Inputs", expanded=False):
         index=0
     )
 
-    is_clientxml = False
-
-    if add_clientxml == "Yes":
-        is_clientxml = True
-    else:    
-        is_clientxml = False
+    is_clientxml = add_clientxml == "Yes"
 
 #---------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------
