@@ -83,8 +83,8 @@ def generate_pain_xml(msg_id=None,
       
     else:
         # Create root/document element
-        document = ET.Element("Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
-        ccti = ET.SubElement(document, "CstmrCdtTrfInitn")
+        root = ET.Element("Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
+        ccti = ET.SubElement(root, "CstmrCdtTrfInitn")
 
     # Header block
     grp_hdr = ET.SubElement(ccti, "GrpHdr")
