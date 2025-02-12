@@ -62,7 +62,7 @@ def generate_pain_xml(msg_id=None,
         xmlns_dict = {xmlns: "http://forbis.lt/schema/gateway/client-xml/v1"}
         root = ET.Element("v1:ClientXML", xmlns_dict)
         file_header = ET.SubElement(root, "v1:Header")
-
+       
         # Add service code
         if is_consolidated:
             ET.SubElement(file_header, "v1:ServiceCode").text = "ConsolidatedPayment"
@@ -77,7 +77,11 @@ def generate_pain_xml(msg_id=None,
 
         file_body = ET.SubElement(root, "v1:Body")
         order_xml = ET.SubElement(file_body, "v1:OrderXML")
+        pain_version = "pain.001.001.03" if is_version_old else "pain.001.001.09"
+        document = ET.SubElement(order_xml, "Document", xmlns=f"urn:iso:std:iso:20022:tech:xsd:{pain_version}")
         ccti = ET.SubElement(order_xml, "CstmrCdtTrfInitn")
+        document.append(ccti)  # Move generated content inside <Document>
+      
     else:
         # Create root element
         if is_version_old:
