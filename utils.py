@@ -217,12 +217,11 @@ def generate_pain_xml(msg_id=None,
 
             # Calculate amount for this payment
             if amount_type == "Fixed Amount":
-                amount = float(fixed_amount)
+                amount = round(float(fixed_amount), 2)
             else:
-                import random
-                amount = random.uniform(min_amount, max_amount)
+                amount = round(random.uniform(min_amount, max_amount), 2)
+            
             ctrl_sum += amount
-
             ET.SubElement(amt, "InstdAmt", Ccy=currency).text = f"{amount:.2f}"
 
             # Creditor Info
