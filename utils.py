@@ -219,7 +219,7 @@ def generate_pain_xml(msg_id=None,
             if amount_type == "Fixed Amount":
                 amount = round(float(fixed_amount), 2)
             else:
-                amount = round(random.uniform(min_amount, max_amount), 2)
+                amount = round(rd.uniform(min_amount, max_amount), 2)
             
             ctrl_sum += amount
             ET.SubElement(amt, "InstdAmt", Ccy=currency).text = f"{amount:.2f}"
